@@ -1,0 +1,60 @@
+using UnityEngine;
+
+public class TerrariumController : MonoBehaviour
+{
+    [Header("References")]
+    public SerialArduinoReader serial;
+    public Camera mainCamera;
+    public Light sunLight;
+
+    [Header("Day/Night Colors")]
+    public Color daySky = new Color(0.70f, 0.88f, 1.00f, 1f);
+    public Color nightSky = new Color(0.02f, 0.04f, 0.10f, 1f);
+
+    [Header("Sun Intensities")]
+    public float daySunIntensity = 1.0f;
+    public float nightSunIntensity = 0.1f;
+
+    [Header("Sensor Thresholds (Hysteresis)")]
+    [Tooltip("Go to night when Light01 drops below this")]
+    public float toNightThreshold = 0.35f;
+
+    [Tooltip("Go to day when Light01 rises above this")]
+    public float toDayThreshold = 0.45f;
+
+    [Header("Transition Smoothing")]
+    public float transitionSpeed = 1.5f; // higher = faster transitions
+
+    private bool isNight = false; // current state
+    private float blend = 0f;     // 0=day, 1=night
+
+    void Start()
+    {
+        // Optional auto-fill camera if left empty
+        if (mainCamera == null) mainCamera = Camera.main;
+    }
+
+    void Update()
+    {
+        if (serial == null || mainCamera == null) return;
+
+        float light01 = serial.Light01;
+
+        // Decide state using hysteresis (prevents flicker)
+        if (!isNight && light01 < toNightThreshold)
+            isNight = true;
+        else if (isNight && light01 > toDayThreshold)
+            isNight = false;
+
+        // Smoothly move blend toward target
+        float target = isNight ? 1f : 0f;
+        blend = Mathf.MoveTowards(blend, target, transitionSpeed * Time.deltaTime);
+
+        // Apply sky color
+        mainCamera.backgroundColor = Color.Lerp(daySky, nightSky, blend);
+
+        // Apply sun intensity
+        if (sunLight != null)
+            sunLight.intensity = Mathf.Lerp(daySunIntensity, nightSunIntensity, blend);
+    }
+}
