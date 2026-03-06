@@ -1,0 +1,26 @@
+using UnityEngine;
+
+public class FocusParticlesController : MonoBehaviour
+{
+    public FocusController focus;
+    public ParticleSystem particles;
+
+    void Start()
+    {
+        if (particles == null) particles = GetComponent<ParticleSystem>();
+    }
+
+    void Update()
+    {
+        if (focus == null || particles == null) return;
+
+        if (focus.IsFocusOn())
+        {
+            if (!particles.isPlaying) particles.Play();
+        }
+        else
+        {
+            if (particles.isPlaying) particles.Stop();
+        }
+    }
+}
