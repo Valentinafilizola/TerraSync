@@ -1,0 +1,55 @@
+using UnityEngine;
+
+public class PlantController : MonoBehaviour
+{
+    [Header("References")]
+    public FocusController focus;     // drag FocusManager here
+    public Renderer plantRenderer;    // drag Plant mesh renderer here (or leave empty to auto)
+
+    [Header("Growth Settings")]
+    public float growSpeed = 0.12f;   // growth per second while focus on
+    public float witherSpeed = 0.08f; // shrink per second while focus off
+    [Range(0f, 1f)] public float growth = 0.2f; // start slightly grown
+
+    [Header("Scale Mapping")]
+    public Vector3 minScale = new Vector3(0.3f, 0.6f, 0.3f);
+    public Vector3 maxScale = new Vector3(0.7f, 2.2f, 0.7f);
+
+    [Header("Color Mapping (Optional)")]
+    public Color healthyColor = new Color(0.2f, 0.8f, 0.3f, 1f);
+    public Color witheredColor = new Color(0.35f, 0.25f, 0.15f, 1f);
+
+    void Start()
+    {
+        if (plantRenderer == null)
+            plantRenderer = GetComponentInChildren<Renderer>();
+    }
+
+    void Update()
+    {
+        if (focus == null) return;
+
+        bool focusOn = focus.IsFocusOn();
+
+        // Decide how growth changes
+        if (focusOn)
+        {
+            growth += growSpeed * Time.deltaTime;
+        }
+        else
+        {
+            growth -= witherSpeed * Time.deltaTime;
+        }
+
+        growth = Mathf.Clamp01(growth);
+
+        // Apply scale
+        transform.localScale = Vector3.Lerp(minScale, maxScale, growth);
+
+        // Apply color
+        if (plantRenderer != null)
+        {
+            plantRenderer.material.color = Color.Lerp(witheredColor, healthyColor, growth);
+        }
+    }
+}
