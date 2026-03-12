@@ -31,7 +31,7 @@ void loop() {
     buttonPressed = 1;
   }
 
-  // --- NEW: constrain light range so dimming starts earlier ---
+  // Constrain range so LEDs dim earlier (but stay bright in darkness)
   int constrainedLight = constrain(lightValue, 0, 600);
 
   // Dark -> bright LEDs
@@ -42,9 +42,10 @@ void loop() {
   analogWrite(led2, brightness);
   analogWrite(led3, brightness);
 
-  // Send sensor data to Unity
+  // Send sensor data to Unity (format Unity expects)
+  Serial.print("L:");
   Serial.print(lightValue);
-  Serial.print(",");
+  Serial.print(",B:");
   Serial.println(buttonPressed);
 
   delay(20);
